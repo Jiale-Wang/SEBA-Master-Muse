@@ -1,6 +1,8 @@
 'use strict';
 
 const UserModel = require('../models/user');
+const OrderModel = require('../models/order');
+const ItemModel = require('../models/item');
 
 const changeName = async (req, res) => {
     const {
@@ -68,7 +70,45 @@ const listItems = async (req, res) => {
     const {userId} = req.params;
 
     const user = await UserModel.findById(userId);
-    res.status(200).json(user.store.items);
+    const itemIds = user.store.items.map((item) => item.itemId);
+    let items = await Promise.all(
+        itemIds.map((id) => ItemModel.findById(id))
+    );
+    items = items.map((item) => {
+        if (item.promotionEndDate < Date.now()) {
+            item.isPromoted = false;
+        }
+        return item;
+    });
+
+    const result = user.store.items.map((item, i) => Object.assign(item.toObject(), items[i].toObject()));
+    res.status(200).json(result);
+};
+
+const storeStats = async (req, res) => {
+    const {userId} = req.params;
+    const user = await UserModel.findById(userId);
+    const itemIds = user.store.items.map((item) => item.itemId);
+    let orders = await Promise.all(
+        itemIds.map((id) => OrderModel.find({itemId: id}))
+    );
+    orders = orders.reduce((prev, next) => [...prev, ...next], []);
+    const itemSold = orders.reduce((prev, next) => prev + next.quantity, 0);
+
+    res.status(200).json({
+        itemSold,
+        revenue: user.store.revenue,
+        visits: user.store.visits,
+        rating: user.store.totalRating / (user.store.ratingCount || 1),
+    });
+};
+
+const getStock = async (req, res) => {
+    const {userId, itemId} = req.query;
+    const user = await UserModel.findById(userId);
+    const items = user.store.items;
+    const {stock} = items.filter((item) => item.itemId.toString() === itemId.toString())[0];
+    res.status(200).json({stock});
 };
 
 
@@ -78,4 +118,6 @@ module.exports = {
     addRevenue,
     rate,
     listItems,
+    storeStats,
+    getStock,
 };

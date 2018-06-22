@@ -3,7 +3,7 @@
 const mongoose = require('mongoose');
 
 const ItemSchema = new mongoose.Schema({
-    name: {
+    title: {
         type: String,
         required: true,
     },
@@ -12,7 +12,7 @@ const ItemSchema = new mongoose.Schema({
         required: true,
     },
     categories: {
-        type: [String],
+        type: mongoose.SchemaTypes.Mixed,
         required: true,
     },
     description: String,
@@ -26,11 +26,10 @@ const ItemSchema = new mongoose.Schema({
         default: false,
     },
     promotionEndDate: Date,
-    printingSize: {
-        type: String,
-        enum: ['12-inch', '24-inch', '36-inch', '48-inch'],
+    printingSizes: {
+        type: [String],
     },
-    comments: [String],
+    comments: [mongoose.SchemaTypes.ObjectId],
     ratingCount: {
         type: Number,
         default: 0,

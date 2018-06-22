@@ -1,6 +1,7 @@
 "use strict";
 
 import HttpService from "./HttpService";
+import AsyncHttpService from './AsyncHttpService';
 
 export default class UserService {
 

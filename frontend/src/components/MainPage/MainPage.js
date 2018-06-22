@@ -5,12 +5,29 @@ import Items from '../../Data/mockItem';
 import Images from '../../Data/images';
 import MyCarousel from '../CustomCarousel/MyCarousel';
 import './MainPage.css';
+import ItemService from '../../services/ItemService';
 
 
 class MainPage extends Component {
-    componentWillMount() {
+    constructor(props) {
+        super(props);
+        this.state = {
+            promotedItems: [],
+            bestSellers: [],
+            images: []
+        };
+    }
+    
+
+    async componentWillMount() {
+        const [promotedItems, bestSellers] = await Promise.all([
+            ItemService.getPromotedItems(),
+            ItemService.getBestSellers(10)
+        ]);
+
         this.setState({
-            data: [...Items, ...Items],
+            promotedItems,
+            bestSellers,
             images: Images,
         })
     }
@@ -26,14 +43,13 @@ class MainPage extends Component {
                     </div>
                     <h3 className='header' >Featured Art</h3>
                     <div className='display-grid'>
-                        {this.state.data.map((data, index) => <ProductCard {...data} key={index} />)}
+                        {this.state.promotedItems.map((data, index) => <ProductCard {...data} key={index} />)}
                     </div>
                     <h3 className='header'>Best Seller</h3>
                     <div className='display-grid'>
-                        {this.state.data.map((data, index) => <ProductCard {...data} key={index} />)}
+                        {this.state.bestSellers.map((data, index) => <ProductCard {...data} key={index} />)}
                     </div>
                 </Page>
-
             </div>
         );
     }

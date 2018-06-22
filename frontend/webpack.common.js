@@ -11,7 +11,7 @@ const CleanWebpackPlugin = require('clean-webpack-plugin');
 
 module.exports = {
     entry: {
-        'vendor': ['react','react-dom','react-router-dom'],
+        'vendor': ['react','react-dom','react-router-dom', 'babel-polyfill'],
         'app': path.resolve(__dirname,'src/index.js')
     },
     output: {
@@ -27,7 +27,7 @@ module.exports = {
                     loader: 'babel-loader',
                     query: {
                         presets: ['env', 'react'],
-                        plugins: ['transform-class-properties']
+                        plugins: ['transform-class-properties', 'transform-object-rest-spread']
                     }
                 }
             },
@@ -48,7 +48,37 @@ module.exports = {
                     fallback: "style-loader",
                     use: "css-loader"
                 })
-            }
+            },
+            {
+                test: /\.(gif|png|jpe?g|svg)$/i,
+                use: [
+                  'file-loader',
+                  {
+                    loader: 'image-webpack-loader',
+                    options: {
+                      mozjpeg: {
+                        progressive: true,
+                        quality: 65
+                      },
+                      // optipng.enabled: false will disable optipng
+                      optipng: {
+                        enabled: false,
+                      },
+                      pngquant: {
+                        quality: '65-90',
+                        speed: 4
+                      },
+                      gifsicle: {
+                        interlaced: false,
+                      },
+                      // the webp option will enable WEBP
+                      webp: {
+                        quality: 75
+                      }
+                    }
+                  },
+                ],
+              }
 
         ]
     },

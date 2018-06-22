@@ -1,29 +1,46 @@
-import React, {Component} from 'react'
+import React, { Component } from 'react'
 import './Store.css';
 import Page from '../Common/Page';
-import FlipCard from '../FlipCard/FlipCard'
+import StoreCard from '../StoreCard/StoreCard'
+import { Media } from 'react-md'
+import Images from '../../Data/images';
 
-const data = [
-    {x: 1, y: 2}, {x: 2, y: 2}, {x: 3, y: 3}, {x: 4, y: 4}, {x: 5, y: 5}
-];
-const legendData = [
-    {name: "1"}, {name: "2"}, {name: "3"}, {name: "4"}, {name: "5"}
-];
+const data = {
+    labels: ['1 star', '2 star', '3 star', '4 star', '5 star'],
+    datasets: [
+        {
+            label: 'total number',
+            backgroundColor: 'rgba(192,192,192,0.5)',
+            borderColor: 'rgba(192,192,192,1)',
+            borderWidth: 1,
+            hoverBackgroundColor: 'rgba(192,192,192,0.8)',
+            hoverBorderColor: 'rgba(192,192,192,1)',
+            data: [65, 10, 80, 81, 56]
+        }
+    ]
+};
 
-const card = (key) => <FlipCard key={key} title='Title'
-                                category='Category'
-                                text='Artist Name'
-                                rating='3.5'
-                                price='600' data={data} legenddata={legendData}/>;
+const card = (key, item) =>
+    <StoreCard key={key} id={item._id} title={item.title} image={item.thumbnail}
+        category={Object.values(item.categories).toString()}
+        stock={`${item.stock} in Stock`}
+        rating={item.rating}
+        price={item.price} data={data}
+        isPromoted={item.isPromoted}
+        promotionEndDate={item.promotionEndDate}
+        />;
+
 export default class Store extends Component {
-
     constructor(props) {
         super(props)
         this.state = {
-            store: [],
-            items: [],
+            storeCards: []
         };
-        this.card = Array.from(Array(12)).map((_, i) => card(i))
+    }
+
+    componentWillReceiveProps(props) {
+        const storeCards = props.items.map((item, i) => card(i, item));
+        this.setState({ storeCards });
     }
 
     render() {
@@ -31,33 +48,49 @@ export default class Store extends Component {
             <Page>
                 <div className='container'>
                     <div className='left'>
-                        <img src='https://placeholdit.imgix.net/~text?txtsize=33&txt=318%C3%97180&w=318&h=180'
-                             style={{width: '80%', height: '40%', paddingTop: '70px', paddingLeft: '10px'}}/>
-                        <p style={{
-                            paddingLeft: '10px',
-                            fontSize: 'medium'
-                        }}>{'Items sold: ' + this.state.store.ratingCount}</p>
-                        <p style={{
-                            paddingLeft: '10px',
-                            fontSize: 'medium'
-                        }}>{'Revenue: ' + this.state.store.revenue}</p>
-                        <p style={{
-                            paddingLeft: '10px',
-                            fontSize: 'medium'
-                        }}>{'Store visits: ' + this.state.store.visits}</p>
-                        <p style={{
-                            paddingLeft: '10px',
-                            fontSize: 'medium'
-                        }}>{'Overall rating: ' + this.state.store.totalRating}</p>
+                        <div style={{
+                            width: '100%',
+                            textAlign: 'center',
+                            padding: '5%'
+                        }}>
+                            <Media aspectRatio='1-1'>
+                                <img
+                                    src='https://www.ienglishstatus.com/wp-content/uploads/2018/04/Anonymous-Whatsapp-profile-picture.jpg'
+                                    role="presentation"
+                                    style={{
+                                        borderRadius: '50%'
+                                    }}
+                                />
+                            </Media>
+                        </div>
+                        <div style={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            padding: '0 20%'
+                        }}>
+                            <div>
+                                <p>Items Sold:</p>
+                                <p>Revenue:</p>
+                                <p>Store Visits:</p>
+                                <p>Overall Rating:</p>
+                            </div>
+                            <div>
+                                <p><b>{this.props.stats.itemSold}</b></p>
+                                <p><b>{this.props.stats.revenue}</b></p>
+                                <p><b>{this.props.stats.visits}</b></p>
+                                <p><b>{this.props.stats.rating}</b></p>
+                            </div>
+                        </div>
                     </div>
                     <div className='right'>
                         <div className='grid' style={{
                             marginLeft: '30px',
                             display: 'grid',
-                            gridTemplateColumns: 'repeat(5, 1fr)',
+                            gridTemplateColumns: 'repeat(4, 1fr)',
                             gridGap: '10px',
                         }}>
-                            {this.card}
+                            {this.state.storeCards}
                         </div>
                     </div>
                 </div>

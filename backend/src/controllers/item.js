@@ -2,25 +2,16 @@
 
 const ItemModel = require('../models/item');
 const UserModel = require('../models/user');
+const OrderModel = require('../models/order');
 
-const getItems = async (req, res) => {
+const getItem = async (req, res) => {
     const {
-        itemIds,
+        id,
     } = req.params;
 
-    if (!!itemIds) {
-        const items = await ItemModel.find({
-            _id: {
-                $in: itemIds,
-            },
-        });
+    const item = await ItemModel.findById(id);
 
-        res.status(200).json(items);
-    } else {
-        res.status(404).json({
-            message: 'item id required',
-        });
-    }
+    res.status(200).json(item);
 };
 
 const addItem = async (req, res) => {
@@ -125,11 +116,52 @@ const findItemsByCategories = async (categories) => {
     return items;
 };
 
+const getPromotedItems = async (req, res) => {
+    const items = await ItemModel.find({
+        isPromoted: true,
+        promotionEndDate: {
+            $gte: new Date(),
+        },
+    });
+
+    res.status(200).json(items);
+};
+
+const getBestSeller = async (req, res) => {
+    const {quantity} = req.query;
+    const orders = await OrderModel.find({});
+    const rankObj = {};
+    for (const order of orders) {
+        const itemId = order.itemId.toString();
+        if (rankObj.hasOwnProperty(itemId)) {
+            rankObj[itemId] = order.quantity;
+        } else {
+            rankObj[itemId] += order.quantity;
+        }
+    }
+
+    const sortableRank = [];
+    for (const itemId of Object.keys(rankObj)) {
+        sortableRank.push([itemId, rankObj[itemId]]);
+    }
+    sortableRank.sort((x, y) => x[1] - y[1]);
+    const bestSellerIds = sortableRank.slice(0, quantity).map((item) => item[0]);
+    const bestSellers = await ItemModel.find({
+        _id: {
+            $in: bestSellerIds,
+        },
+    });
+
+    res.status(200).json(bestSellers);
+};
+
 module.exports = {
-    getItems,
+    getItem,
     removeItem,
     updateItem,
     addItem,
     findItems,
     promoteItem,
+    getPromotedItems,
+    getBestSeller,
 };
